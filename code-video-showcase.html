@@ -1,0 +1,1418 @@
+<!doctype html>
+<!--
+MIT License
+
+Copyright (c) 2026 Moessif
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code Video Showcase · 主题预览</title>
+<style>
+  :root { color-scheme: dark; font: 16px/1.55 "Segoe UI", "Microsoft YaHei", sans-serif; }
+  body { margin: 0; background: #141513; color: #f4efe6; }
+  main { max-width: 1120px; margin: auto; padding: clamp(20px, 5vw, 64px) clamp(16px, 4vw, 48px); }
+  h1 { margin: 0; font-size: clamp(30px, 5vw, 56px); line-height: 1.08; letter-spacing: -.035em; }
+  p { margin: .75rem 0 1.5rem; color: #c8c3b8; }
+  nav { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.25rem; }
+  a { color: #ffd6aa; }
+  nav a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; padding: 0 .85rem; border: 1px solid #66635b; border-radius: 6px; }
+  nav a[aria-current="page"] { color: #20160d; background: #ffd6aa; border-color: #ffd6aa; font-weight: 650; }
+  a:focus-visible { outline: 2px solid white; outline-offset: 4px; }
+  #stage { border: 1px solid #66635b; background: #0e0e0d; }
+  canvas { display: block; width: 100%; height: auto; }
+  footer { margin-top: .9rem; color: #c8c3b8; font-size: .88rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Code Video Showcase</h1>
+    <p>挑选一套主题，预览它的配色、大字卡和画面标签。</p>
+  </header>
+  <nav aria-label="切换视频主题">
+    <a href="?theme=coral-noir" data-theme="coral-noir">珊瑚暗夜</a>
+        <a href="?theme=claude-light" data-theme="claude-light">橙光白</a>
+        <a href="?theme=aqua-morandi" data-theme="aqua-morandi">水蓝白 · 莫兰迪</a>
+        <a href="?theme=amber-noir" data-theme="amber-noir">琥珀黑金</a>
+        <a href="?theme=blueprint-stone" data-theme="blueprint-stone">蓝图纸</a>
+        <a href="?theme=graphite-signal" data-theme="graphite-signal">石墨信号</a>
+        <a href="?theme=celadon-paper" data-theme="celadon-paper">青瓷白</a>
+        <a href="?theme=crimson-theater" data-theme="crimson-theater">绯墨剧场</a>
+  </nav>
+  <div id="stage"><canvas id="c" width="1920" height="1080" role="img" aria-label="当前主题的预览板"></canvas></div>
+  <footer><a href="https://github.com/Moessif/code-video-showcase">查看 Moessif 的 Skill 源码和安装说明</a> · MIT</footer>
+</main>
+
+<script>
+(() => {
+  // .agents/skills/code-video-showcase/templates/themes.js
+  var THEMES = {
+    /* 1 ── 原版：暗场 + 珊瑚。所有值与原模板一致，是默认值。──────────────── */
+    "coral-noir": {
+      id: "coral-noir",
+      name: "珊瑚暗夜",
+      nameEn: "Coral Noir",
+      mode: "dark",
+      tagline: "温暖暗场 + 珊瑚一点，原版电影感",
+      useFor: "默认 / 科技发布 / 产品片",
+      aliases: ["coral", "noir", "original", "default", "默认", "原版"],
+      colors: {
+        bg: "#0e0e0d",
+        bgDeep: "#060605",
+        surface: "#1a1917",
+        ink: "#f5f0e8",
+        muted: "#8f8981",
+        accent: "#d97757",
+        accentInk: "#0e0e0d",
+        accentSoft: "#f0b49c",
+        paper: "#f4efe6",
+        paperInk: "#141311",
+        paperMuted: "#6f6a61",
+        cardDark: "#0e0e0d",
+        cardDarkInk: "#f5f0e8",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "暖金", hex: "#ffcf5c" },
+        { name: "冰蓝", hex: "#58c4dd" },
+        { name: "紫罗兰", hex: "#a58bff" },
+        { name: "霓虹粉", hex: "#ff2bd6" }
+      ],
+      hud: {
+        capsuleBg: "rgba(12,12,12,0.72)",
+        capsuleBorder: "rgba(255,255,255,0.18)",
+        capsuleNumber: "#d97757",
+        capsuleText: "#f5f0e8",
+        hudText: "rgba(245,240,232,0.42)",
+        countdown: "rgba(245,240,232,0.72)"
+      },
+      cardSheen: "rgba(255,255,255,0.06)",
+      material: {
+        kind: "grain",
+        name: "胶片颗粒",
+        note: "暗场保留颗粒与珊瑚径向光晕；光晕只在片头和风格段落之间出现。",
+        grain: 0.055,
+        glow: { color: "#d97757", alpha: 0.3, radius: 1040, x: 0.74, y: 0.3 },
+        grid: null,
+        glass: null,
+        foil: null,
+        tints: null,
+        texture: "grain"
+      },
+      type: {
+        display: "Noto Sans SC 900",
+        accent: "Playfair Display 斜体",
+        note: "沿用原版排印，不要换字体；珊瑚只做强调，不做大面积背景。",
+        fonts: ["Noto Sans SC", "JetBrains Mono"]
+      }
+    },
+    /* 2 ── 橙光白（Claude 品牌自有色）────────────────────────────────────── */
+    "claude-light": {
+      id: "claude-light",
+      name: "橙光白",
+      nameEn: "Claude Light",
+      mode: "light",
+      tagline: "暖纸底 + 陶土橙，像一页印好的信",
+      useFor: "品牌 / 知识 / 生活方式 / 访谈",
+      aliases: ["claude", "orange-light", "cream", "橙光白"],
+      colors: {
+        bg: "#f0eee6",
+        bgDeep: "#e7e3d7",
+        surface: "#e8e4d8",
+        ink: "#1f1e1d",
+        muted: "#6b675e",
+        accent: "#d97757",
+        accentInk: "#1f1e1d",
+        accentSoft: "#f2c7b5",
+        paper: "#fbfaf6",
+        paperInk: "#1f1e1d",
+        paperMuted: "#6b675e",
+        cardDark: "#1f1e1d",
+        cardDarkInk: "#f0eee6",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "陶土橙", hex: "#d97757" },
+        { name: "赭黄", hex: "#c9a45a" },
+        { name: "鼠尾草", hex: "#8a9a8b" },
+        { name: "灰蓝", hex: "#7c9aa6" }
+      ],
+      hud: {
+        capsuleBg: "rgba(31,30,29,0.9)",
+        capsuleBorder: "rgba(255,255,255,0.2)",
+        capsuleNumber: "#f2c7b5",
+        capsuleText: "#f7f4ec",
+        hudText: "rgba(31,30,29,0.52)",
+        countdown: "rgba(31,30,29,0.58)"
+      },
+      cardSheen: "rgba(255,255,255,0.14)",
+      material: {
+        kind: "paper",
+        name: "纸面柔光",
+        note: "暖纸底 + 陶土橙色场；光只做极轻的暖晕，不叠加玻璃或金属。",
+        grain: 0.03,
+        glow: { color: "#f2c7b5", alpha: 0.24, radius: 1280, x: 0.82, y: 0.12 },
+        grid: null,
+        glass: null,
+        foil: null,
+        tints: null,
+        texture: "paper"
+      },
+      type: {
+        display: "Noto Sans SC 900",
+        accent: "Playfair Display 斜体",
+        note: "这是 Claude 品牌自有色，属于 design-taste 里「品牌自有例外」：用整段色场和严格排印压住奶油底的 AI 味，不要加渐变光球。",
+        fonts: ["Noto Sans SC", "Playfair Display", "JetBrains Mono"]
+      }
+    },
+    /* 3 ── 水蓝白 · 莫兰迪（柔光 + 淡绿/淡粉 + 液态玻璃）────────────────── */
+    "aqua-morandi": {
+      id: "aqua-morandi",
+      name: "水蓝白 · 莫兰迪",
+      nameEn: "Aqua Morandi",
+      mode: "light",
+      tagline: "雾面水色，淡绿与淡粉只从光里透出来",
+      useFor: "品牌 / 美妆 / 生活方式 / 轻科技",
+      aliases: ["aqua", "water", "morandi", "水蓝白", "莫兰迪"],
+      colors: {
+        bg: "#f4f8f8",
+        bgDeep: "#e6f0f1",
+        surface: "#eaf2f2",
+        ink: "#2f3a3c",
+        muted: "#617376",
+        accent: "#6e9fae",
+        accentInk: "#223134",
+        accentSoft: "#a9c9d3",
+        paper: "#fbfcfc",
+        paperInk: "#2a3537",
+        paperMuted: "#617376",
+        cardDark: "#2f3a3c",
+        cardDarkInk: "#f0f6f6",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "淡绿", hex: "#a8c3a0" },
+        { name: "淡粉", hex: "#e6c2c6" },
+        { name: "暖沙", hex: "#d9cbb8" },
+        { name: "雾蓝", hex: "#a9c9d3" }
+      ],
+      hud: {
+        capsuleBg: "rgba(47,58,60,0.88)",
+        capsuleBorder: "rgba(255,255,255,0.28)",
+        capsuleNumber: "#a9c9d3",
+        capsuleText: "#f0f6f6",
+        hudText: "rgba(47,58,60,0.44)",
+        countdown: "rgba(47,58,60,0.52)"
+      },
+      cardSheen: "rgba(255,255,255,0.22)",
+      material: {
+        kind: "glass",
+        name: "液态玻璃 · 柔光",
+        note: "雾面水色底上浮三团柔光（淡绿 / 淡粉 / 雾蓝），信息卡用液态玻璃：半透明白、1px 高光边、斜向高光。莫兰迪靠明度差分层，不靠高对比。",
+        grain: 0.018,
+        glow: { color: "#a9c9d3", alpha: 0.26, radius: 1100, x: 0.28, y: 0.22 },
+        grid: null,
+        glass: {
+          fill: "rgba(255,255,255,0.42)",
+          border: "rgba(255,255,255,0.78)",
+          sheen: "rgba(255,255,255,0.92)",
+          tint: "rgba(168,195,160,0.1)"
+        },
+        foil: null,
+        tints: ["#a8c3a0", "#e6c2c6", "#a9c9d3"],
+        texture: "grain"
+      },
+      type: {
+        display: "Noto Sans SC 500 / 700",
+        accent: "Noto Serif SC",
+        note: "字重比原版轻一档、留白更多；淡绿/淡粉只出现在光和玻璃高光里，不要拿它们当大面积底色。",
+        fonts: ["Noto Sans SC", "Noto Serif SC", "JetBrains Mono"]
+      }
+    },
+    /* 4 ── 琥珀黑金 ──────────────────────────────────────────────────────── */
+    "amber-noir": {
+      id: "amber-noir",
+      name: "琥珀黑金",
+      nameEn: "Amber Noir",
+      mode: "dark",
+      tagline: "近黑与旧金，片头字幕的质地",
+      useFor: "高端 / 奢品 / 电影感 / 年度片",
+      aliases: ["amber", "gold", "琥珀", "黑金"],
+      colors: {
+        bg: "#0c0a08",
+        bgDeep: "#060504",
+        surface: "#181512",
+        ink: "#ffffff",
+        muted: "#8f8a84",
+        accent: "#c9a45a",
+        accentInk: "#0c0a08",
+        accentSoft: "#e3c98f",
+        paper: "#efe7d8",
+        paperInk: "#191512",
+        paperMuted: "#6f675c",
+        cardDark: "#0c0a08",
+        cardDarkInk: "#ffffff",
+        flash: "#fff3dd"
+      },
+      accents: [
+        { name: "旧金", hex: "#c9a45a" },
+        { name: "古铜", hex: "#8f6b3d" },
+        { name: "橄榄", hex: "#5e6b5a" },
+        { name: "酒红", hex: "#9a5b4a" }
+      ],
+      hud: {
+        capsuleBg: "rgba(10,8,6,0.78)",
+        capsuleBorder: "rgba(255,255,255,0.16)",
+        capsuleNumber: "#c9a45a",
+        capsuleText: "#ffffff",
+        hudText: "rgba(255,255,255,0.4)",
+        countdown: "rgba(255,255,255,0.66)"
+      },
+      cardSheen: "rgba(255,226,170,0.1)",
+      material: {
+        kind: "foil",
+        name: "金属烫金",
+        note: "烫金斜光只擦过标题和细线，不铺满画面；近黑底保持安静。",
+        grain: 0.04,
+        glow: { color: "#c9a45a", alpha: 0.24, radius: 980, x: 0.68, y: 0.24 },
+        grid: null,
+        glass: null,
+        foil: { angle: -24, color: "rgba(255,226,170,0.12)" },
+        tints: null,
+        texture: "grain"
+      },
+      type: {
+        display: "Playfair Display + Noto Sans SC",
+        accent: "Playfair Display",
+        note: "衬线大标题、字距略收紧；HUD 用 JetBrains Mono 拉出奢侈品目录感。",
+        fonts: ["Playfair Display", "Noto Sans SC", "JetBrains Mono"]
+      }
+    },
+    /* 5 ── 蓝图纸 ────────────────────────────────────────────────────────── */
+    "blueprint-stone": {
+      id: "blueprint-stone",
+      name: "蓝图纸",
+      nameEn: "Blueprint Stone",
+      mode: "light",
+      tagline: "石色纸 + 蓝图钴蓝，工程档案",
+      useFor: "工程 / 建筑 / 数据 / 技术",
+      aliases: ["blueprint", "stone", "蓝图", "图纸"],
+      colors: {
+        bg: "#dfdedb",
+        bgDeep: "#d3d2ce",
+        surface: "#d3d2ce",
+        ink: "#26251e",
+        muted: "#5f5d55",
+        accent: "#2456d6",
+        accentInk: "#f7f8fa",
+        accentSoft: "#9db4ee",
+        paper: "#f3f2ef",
+        paperInk: "#26251e",
+        paperMuted: "#5f5d55",
+        cardDark: "#26251e",
+        cardDarkInk: "#dfdedb",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "钴蓝", hex: "#2456d6" },
+        { name: "砖红", hex: "#c2452d" },
+        { name: "墨绿", hex: "#4c6b4f" },
+        { name: "赭石", hex: "#8a7a50" }
+      ],
+      hud: {
+        capsuleBg: "rgba(38,37,30,0.9)",
+        capsuleBorder: "rgba(255,255,255,0.22)",
+        capsuleNumber: "#9db4ee",
+        capsuleText: "#f3f2ef",
+        hudText: "rgba(38,37,30,0.48)",
+        countdown: "rgba(38,37,30,0.56)"
+      },
+      cardSheen: "rgba(255,255,255,0.1)",
+      material: {
+        kind: "grid",
+        name: "蓝图网格",
+        note: "石色纸上叠 80px 蓝图细网格；没有光晕，靠网格、色块和等宽标注讲结构。",
+        grain: 0.02,
+        glow: null,
+        grid: { color: "#2456d6", alpha: 0.055, step: 80, major: 5, majorAlpha: 0.1 },
+        glass: null,
+        foil: null,
+        tints: null,
+        texture: "grid"
+      },
+      type: {
+        display: "Noto Sans SC 700",
+        accent: "JetBrains Mono",
+        note: "工程档案感：编号、坐标、标注一律等宽；中文标题保持粗黑，不要用衬线。",
+        fonts: ["Noto Sans SC", "JetBrains Mono"]
+      }
+    },
+    /* 6 ── 石墨信号 ──────────────────────────────────────────────────────── */
+    "graphite-signal": {
+      id: "graphite-signal",
+      name: "石墨信号",
+      nameEn: "Graphite Signal",
+      mode: "dark",
+      tagline: "石墨灰 + 安全橙，工业硬核，没有光晕",
+      useFor: "开发者 / 硬件 / 工业 / 硬核科技",
+      aliases: ["graphite", "signal", "石墨", "工业"],
+      colors: {
+        bg: "#18191b",
+        bgDeep: "#101113",
+        surface: "#222427",
+        ink: "#eff0f1",
+        muted: "#9c9ea3",
+        accent: "#ff4a1f",
+        accentInk: "#18191b",
+        accentSoft: "#ffb199",
+        paper: "#e9eaeb",
+        paperInk: "#17181a",
+        paperMuted: "#5d5f63",
+        cardDark: "#18191b",
+        cardDarkInk: "#eff0f1",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "安全橙", hex: "#ff4a1f" },
+        { name: "工业蓝", hex: "#3d68ff" },
+        { name: "警示黄", hex: "#f2c14e" },
+        { name: "中灰", hex: "#9c9ea3" }
+      ],
+      hud: {
+        capsuleBg: "rgba(20,21,23,0.82)",
+        capsuleBorder: "rgba(255,255,255,0.16)",
+        capsuleNumber: "#ff4a1f",
+        capsuleText: "#eff0f1",
+        hudText: "rgba(239,240,241,0.4)",
+        countdown: "rgba(239,240,241,0.66)"
+      },
+      cardSheen: "rgba(255,255,255,0.05)",
+      material: {
+        kind: "matte",
+        name: "哑光工业",
+        note: "哑光工业灰 + 安全橙；禁止柔光和投影，所有面都是平的，只在边角留一条橙色警示线。",
+        grain: 0.03,
+        glow: null,
+        grid: { color: "#eff0f1", alpha: 0.03, step: 120, major: 0, majorAlpha: 0 },
+        glass: null,
+        foil: null,
+        tints: null,
+        texture: "grid"
+      },
+      type: {
+        display: "Noto Sans SC 900",
+        accent: "JetBrains Mono",
+        note: "更紧的字距、更硬的边；参数、编号、单位都用等宽字体。",
+        fonts: ["Noto Sans SC", "JetBrains Mono"]
+      }
+    },
+    /* 7 ── 青瓷白（单色青）──────────────────────────────────────────────── */
+    "celadon-paper": {
+      id: "celadon-paper",
+      name: "青瓷白",
+      nameEn: "Celadon Paper",
+      mode: "light",
+      tagline: "整片只有一种深青，像瓷器上的釉",
+      useFor: "东方 / 文化 / 极简 / 品牌故事",
+      aliases: ["celadon", "teal", "青瓷", "青"],
+      colors: {
+        bg: "#f7f9f8",
+        bgDeep: "#e9f0ee",
+        surface: "#ebf0ee",
+        ink: "#06525c",
+        muted: "#2f737d",
+        accent: "#06525c",
+        accentInk: "#f7f9f8",
+        accentSoft: "#8fb9bc",
+        paper: "#ffffff",
+        paperInk: "#06525c",
+        paperMuted: "#2f737d",
+        cardDark: "#03343a",
+        cardDarkInk: "#f7f9f8",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "深青", hex: "#06525c" },
+        { name: "湖青", hex: "#0b7a7f" },
+        { name: "粉青", hex: "#8fb9bc" },
+        { name: "月白", hex: "#c9dad7" }
+      ],
+      hud: {
+        capsuleBg: "rgba(6,82,92,0.9)",
+        capsuleBorder: "rgba(255,255,255,0.24)",
+        capsuleNumber: "#8fb9bc",
+        capsuleText: "#f7f9f8",
+        hudText: "rgba(6,82,92,0.5)",
+        countdown: "rgba(6,82,92,0.58)"
+      },
+      cardSheen: "rgba(255,255,255,0.16)",
+      material: {
+        kind: "ink",
+        name: "水墨晕染",
+        note: "单色青水墨：没有黑色，所有层次由同一支青的浓淡晕开；留白就是构图。",
+        grain: 0.02,
+        glow: { color: "#8fb9bc", alpha: 0.18, radius: 1200, x: 0.24, y: 0.18 },
+        grid: null,
+        glass: null,
+        foil: null,
+        tints: null,
+        texture: "paper"
+      },
+      type: {
+        display: "Noto Serif SC",
+        accent: "Noto Serif SC",
+        note: "标题用宋体、正文黑体；留白极大，像册页；不要出现第二个彩色。",
+        fonts: ["Noto Serif SC", "Noto Sans SC", "JetBrains Mono"]
+      }
+    },
+    /* 8 ── 绯墨剧场 ──────────────────────────────────────────────────────── */
+    "crimson-theater": {
+      id: "crimson-theater",
+      name: "绯墨剧场",
+      nameEn: "Crimson Theater",
+      mode: "dark",
+      tagline: "近黑与绯红，舞台聚光的戏剧",
+      useFor: "时尚 / 艺术 / 预告 / 情绪片",
+      aliases: ["crimson", "theater", "绯墨", "剧场"],
+      colors: {
+        bg: "#0a0a0a",
+        bgDeep: "#050505",
+        surface: "#151515",
+        ink: "#efefef",
+        muted: "#8c8c8c",
+        accent: "#b11226",
+        accentInk: "#ffffff",
+        accentSoft: "#e06a75",
+        paper: "#efefef",
+        paperInk: "#0a0a0a",
+        paperMuted: "#5c5c5c",
+        cardDark: "#0a0a0a",
+        cardDarkInk: "#efefef",
+        flash: "#ffffff"
+      },
+      accents: [
+        { name: "绯红", hex: "#b11226" },
+        { name: "暗酒红", hex: "#7d0c14" },
+        { name: "骨白", hex: "#e2e2e2" },
+        { name: "近黑", hex: "#0a0a0a" }
+      ],
+      hud: {
+        capsuleBg: "rgba(8,8,8,0.78)",
+        capsuleBorder: "rgba(255,255,255,0.14)",
+        capsuleNumber: "#e06a75",
+        capsuleText: "#efefef",
+        hudText: "rgba(239,239,239,0.38)",
+        countdown: "rgba(239,239,239,0.64)"
+      },
+      cardSheen: "rgba(255,255,255,0.06)",
+      material: {
+        kind: "glow",
+        name: "舞台聚光",
+        note: "绯红从顶部打下来、四周压暗；装饰极少，靠聚光和一两个大字。",
+        grain: 0.05,
+        glow: { color: "#b11226", alpha: 0.3, radius: 900, x: 0.5, y: 0.34 },
+        grid: null,
+        glass: null,
+        foil: null,
+        tints: null,
+        texture: "grain"
+      },
+      type: {
+        display: "Playfair Display + Noto Sans SC",
+        accent: "Playfair Display",
+        note: "电影预告质感：极致居中、字距拉开、字号敢大。",
+        fonts: ["Playfair Display", "Noto Sans SC", "JetBrains Mono"]
+      }
+    }
+  };
+  var THEME_IDS = Object.keys(THEMES);
+  var THEME_LIST = THEME_IDS.map((id) => THEMES[id]);
+  var DEFAULT_THEME = "coral-noir";
+  function getTheme(ref) {
+    if (ref && typeof ref === "object" && ref.colors) return ref;
+    if (ref == null || ref === "") return THEMES[DEFAULT_THEME];
+    const key = String(ref).trim().toLowerCase();
+    if (THEMES[key]) return THEMES[key];
+    for (const theme2 of THEME_LIST) {
+      if (theme2.aliases && theme2.aliases.some((a) => String(a).toLowerCase() === key)) return theme2;
+    }
+    console.warn(`[themes] unknown theme "${ref}", falling back to "${DEFAULT_THEME}"`);
+    return THEMES[DEFAULT_THEME];
+  }
+  function themeFromURL(search) {
+    let q = search;
+    if (q == null && typeof location !== "undefined") q = location.search;
+    const params = new URLSearchParams(q || "");
+    return getTheme(params.get("theme") || params.get("t") || DEFAULT_THEME);
+  }
+  function chrome(themeRef) {
+    const t = getTheme(themeRef);
+    return {
+      theme: t,
+      capsule: {
+        numberColor: t.hud.capsuleNumber,
+        textColor: t.hud.capsuleText,
+        bg: t.hud.capsuleBg,
+        border: t.hud.capsuleBorder
+      },
+      countdown: { color: t.hud.countdown },
+      stamp: { color: t.hud.hudText },
+      flash: t.colors.flash
+    };
+  }
+  function cardColors(themeRef, layout = 0) {
+    const t = getTheme(themeRef);
+    const c2 = t.colors;
+    const sheen = t.cardSheen || "rgba(255,255,255,0.06)";
+    const readable = (preferred, bg, fallbacks, min = 2.2) => {
+      const cands = [preferred, ...fallbacks].filter(Boolean);
+      return cands.find((hex) => contrastRatio(hex, bg) >= min) || cands[0];
+    };
+    if (layout === 0) {
+      return {
+        field: "accent",
+        bg: c2.accent,
+        ink: c2.accentInk,
+        sub: hexToRgba(c2.accentInk, 0.55),
+        keyword: c2.accentInk,
+        echo: hexToRgba(c2.accentInk, 0.07),
+        grid: hexToRgba(c2.accentInk, 0.05),
+        sheen
+      };
+    }
+    if (layout === 1) {
+      return {
+        field: "paper",
+        bg: c2.paper,
+        ink: c2.paperInk,
+        sub: hexToRgba(c2.paperInk, 0.52),
+        keyword: readable(c2.accent, c2.paper, [c2.paperInk]),
+        echo: hexToRgba(c2.paperInk, 0.06),
+        grid: hexToRgba(c2.paperInk, 0.045),
+        sheen: "rgba(255,255,255,0.18)"
+      };
+    }
+    return {
+      field: "dark",
+      bg: c2.cardDark,
+      ink: c2.cardDarkInk,
+      sub: hexToRgba(c2.cardDarkInk, 0.46),
+      keyword: readable(c2.accent, c2.cardDark, [c2.accentSoft, c2.cardDarkInk]),
+      echo: hexToRgba(c2.cardDarkInk, 0.07),
+      grid: hexToRgba(c2.cardDarkInk, 0.05),
+      sheen
+    };
+  }
+  function loadFontsFor(themeRef) {
+    const t = getTheme(themeRef);
+    return t.type && t.type.fonts || ["Noto Sans SC"];
+  }
+  function hexToRgb(hex) {
+    const h = String(hex).replace("#", "").trim();
+    const full = h.length === 3 ? h.split("").map((x) => x + x).join("") : h;
+    const n = parseInt(full, 16);
+    if (!Number.isFinite(n) || full.length !== 6) throw new Error(`bad hex: ${hex}`);
+    return { r: n >> 16 & 255, g: n >> 8 & 255, b: n & 255 };
+  }
+  function hexToRgba(hex, alpha = 1) {
+    const { r, g, b } = hexToRgb(hex);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
+  function mix(hexA, hexB, t = 0.5) {
+    const a = hexToRgb(hexA);
+    const b = hexToRgb(hexB);
+    const c2 = (x, y) => Math.round(x + (y - x) * t);
+    const to = (v) => v.toString(16).padStart(2, "0");
+    return `#${to(c2(a.r, b.r))}${to(c2(a.g, b.g))}${to(c2(a.b, b.b))}`;
+  }
+  function relativeLuminance(hex) {
+    const { r, g, b } = hexToRgb(hex);
+    const lin = (v) => {
+      const s = v / 255;
+      return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+    };
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  }
+  function contrastRatio(hexA, hexB) {
+    const l1 = relativeLuminance(hexA);
+    const l2 = relativeLuminance(hexB);
+    const [hi, lo] = l1 >= l2 ? [l1, l2] : [l2, l1];
+    return (hi + 0.05) / (lo + 0.05);
+  }
+  function roundRectPath(ctx2, x, y, w, h, r) {
+    const rr2 = Math.min(r, w / 2, h / 2);
+    ctx2.beginPath();
+    ctx2.moveTo(x + rr2, y);
+    ctx2.arcTo(x + w, y, x + w, y + h, rr2);
+    ctx2.arcTo(x + w, y + h, x, y + h, rr2);
+    ctx2.arcTo(x, y + h, x, y, rr2);
+    ctx2.arcTo(x, y, x + w, y, rr2);
+    ctx2.closePath();
+  }
+  function radial(ctx2, cx, cy, radius, color, alpha) {
+    if (radius <= 0) return;
+    const g = ctx2.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    g.addColorStop(0, hexToRgba(color, alpha));
+    g.addColorStop(0.55, hexToRgba(color, alpha * 0.45));
+    g.addColorStop(1, hexToRgba(color, 0));
+    const keep = ctx2.fillStyle;
+    ctx2.fillStyle = g;
+    ctx2.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx2.fillStyle = keep;
+  }
+  function seeded(seed) {
+    let a = seed >>> 0;
+    return function next() {
+      a = a + 1831565813 >>> 0;
+      let t = a;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var _grainCache = /* @__PURE__ */ new Map();
+  function grainTile(mode) {
+    if (typeof document === "undefined") return null;
+    if (_grainCache.has(mode)) return _grainCache.get(mode);
+    const size = 256;
+    const canvas2 = document.createElement("canvas");
+    canvas2.width = size;
+    canvas2.height = size;
+    const g = canvas2.getContext("2d");
+    const img = g.createImageData(size, size);
+    const rand = seeded(mode === "dark" ? 1592594996 : 252645135);
+    const base = mode === "dark" ? 255 : 0;
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = rand();
+      img.data[i] = base;
+      img.data[i + 1] = base;
+      img.data[i + 2] = base;
+      img.data[i + 3] = Math.floor(v * v * 255);
+    }
+    g.putImageData(img, 0, 0);
+    _grainCache.set(mode, canvas2);
+    return canvas2;
+  }
+  function drawGrain(ctx2, themeRef, W2, H2, t = 0) {
+    const theme2 = getTheme(themeRef);
+    const m2 = theme2.material;
+    if (!m2.grain) return;
+    const tile = grainTile(theme2.mode);
+    if (!tile) return;
+    const pattern = ctx2.createPattern(tile, "repeat");
+    if (!pattern) return;
+    const ox = Math.round((t * 30 % 256 + 256) % 256);
+    const oy = Math.round((t * 47 % 256 + 256) % 256);
+    ctx2.save();
+    ctx2.globalAlpha = Math.min(0.5, m2.grain * 3.2);
+    ctx2.translate(-ox, -oy);
+    ctx2.fillStyle = pattern;
+    ctx2.fillRect(0, 0, W2 + 256, H2 + 256);
+    ctx2.restore();
+  }
+  function drawVignette(ctx2, W2, H2, alpha = 0.5, inner = 0.42, outer = 0.86) {
+    if (!alpha) return;
+    const g = ctx2.createRadialGradient(W2 / 2, H2 * 0.46, Math.min(W2, H2) * inner, W2 / 2, H2 * 0.46, Math.max(W2, H2) * outer);
+    g.addColorStop(0, "rgba(0,0,0,0)");
+    g.addColorStop(1, `rgba(0,0,0,${alpha})`);
+    const keep = ctx2.fillStyle;
+    ctx2.fillStyle = g;
+    ctx2.fillRect(0, 0, W2, H2);
+    ctx2.fillStyle = keep;
+  }
+  function drawThemeBackground(ctx2, themeRef, W2 = 1920, H2 = 1080, t = 0) {
+    const theme2 = getTheme(themeRef);
+    const c2 = theme2.colors;
+    const m2 = theme2.material;
+    ctx2.save();
+    const base = ctx2.createLinearGradient(0, 0, 0, H2);
+    base.addColorStop(0, c2.bg);
+    base.addColorStop(1, c2.bgDeep || c2.bg);
+    ctx2.fillStyle = base;
+    ctx2.fillRect(0, 0, W2, H2);
+    if (m2.kind === "glass") {
+      const tints = m2.tints || [c2.accentSoft, c2.paper];
+      tints.forEach((color, i) => {
+        const cx = W2 * (0.16 + 0.3 * i) + Math.sin(t * 0.55 + i * 2.1) * W2 * 0.05;
+        const cy = H2 * (0.24 + 0.2 * i) + Math.cos(t * 0.47 + i * 1.7) * H2 * 0.06;
+        const radius = W2 * (0.26 + 0.07 * i);
+        radial(ctx2, cx, cy, radius, color, 0.42 - i * 0.07);
+      });
+      const irid = ctx2.createLinearGradient(0, 0, W2, H2);
+      irid.addColorStop(0, "rgba(168,195,160,0.07)");
+      irid.addColorStop(0.45, "rgba(230,194,198,0.05)");
+      irid.addColorStop(0.75, "rgba(169,201,211,0.08)");
+      irid.addColorStop(1, "rgba(255,255,255,0)");
+      ctx2.fillStyle = irid;
+      ctx2.fillRect(0, 0, W2, H2);
+    }
+    if (m2.glow) {
+      const g = m2.glow;
+      const breathe = 0.92 + 0.08 * Math.sin(t * 0.8);
+      radial(ctx2, W2 * g.x, H2 * g.y, g.radius, g.color, g.alpha * breathe);
+    }
+    if (m2.kind === "foil" && m2.foil) {
+      const angle = m2.foil.angle * Math.PI / 180;
+      const cx = W2 / 2;
+      const cy = H2 / 2;
+      const dx = Math.cos(angle) * W2;
+      const dy = Math.sin(angle) * H2;
+      const g = ctx2.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
+      g.addColorStop(0, "rgba(255,226,170,0)");
+      g.addColorStop(0.42, m2.foil.color);
+      g.addColorStop(0.5, "rgba(255,244,214,0.16)");
+      g.addColorStop(0.58, m2.foil.color);
+      g.addColorStop(1, "rgba(255,226,170,0)");
+      const keep = ctx2.globalAlpha;
+      ctx2.globalAlpha = 0.9;
+      ctx2.fillStyle = g;
+      ctx2.fillRect(0, 0, W2, H2);
+      ctx2.globalAlpha = keep;
+    }
+    if (m2.kind === "ink") {
+      radial(ctx2, W2 * 0.76, H2 * 0.2, W2 * 0.5, c2.accent, 0.1);
+      radial(ctx2, W2 * 0.18, H2 * 0.82, W2 * 0.42, c2.accent, 0.07);
+      const wash = ctx2.createLinearGradient(0, H2 * 0.72, 0, H2);
+      wash.addColorStop(0, "rgba(6,82,92,0)");
+      wash.addColorStop(1, "rgba(6,82,92,0.08)");
+      ctx2.fillStyle = wash;
+      ctx2.fillRect(0, H2 * 0.72, W2, H2 * 0.28);
+    }
+    if (m2.kind === "glow") {
+      const spot = ctx2.createRadialGradient(W2 * 0.5, H2 * 0.18, 0, W2 * 0.5, H2 * 0.18, H2 * 0.9);
+      spot.addColorStop(0, hexToRgba(c2.accent, 0.24));
+      spot.addColorStop(0.5, hexToRgba(c2.accent, 0.06));
+      spot.addColorStop(1, "rgba(0,0,0,0)");
+      ctx2.fillStyle = spot;
+      ctx2.fillRect(0, 0, W2, H2);
+      drawVignette(ctx2, W2, H2, 0.55, 0.3, 0.92);
+    }
+    if (m2.grid) {
+      const { step = 80, color = c2.ink, alpha = 0.05, major = 0, majorAlpha = 0 } = m2.grid;
+      ctx2.save();
+      ctx2.lineWidth = 1;
+      for (let x = 0, i = 0; x <= W2; x += step, i++) {
+        const isMajor = major > 0 && i % major === 0;
+        ctx2.strokeStyle = hexToRgba(color, isMajor ? majorAlpha || alpha * 1.8 : alpha);
+        ctx2.beginPath();
+        ctx2.moveTo(x + 0.5, 0);
+        ctx2.lineTo(x + 0.5, H2);
+        ctx2.stroke();
+      }
+      for (let y = 0, i = 0; y <= H2; y += step, i++) {
+        const isMajor = major > 0 && i % major === 0;
+        ctx2.strokeStyle = hexToRgba(color, isMajor ? majorAlpha || alpha * 1.8 : alpha);
+        ctx2.beginPath();
+        ctx2.moveTo(0, y + 0.5);
+        ctx2.lineTo(W2, y + 0.5);
+        ctx2.stroke();
+      }
+      ctx2.restore();
+    }
+    if (m2.kind === "paper") {
+      radial(ctx2, W2 * 0.84, H2 * 0.1, W2 * 0.55, c2.accentSoft, 0.16);
+      radial(ctx2, W2 * 0.1, H2 * 0.92, W2 * 0.45, "#d9cbb8", 0.1);
+      const edge = ctx2.createLinearGradient(0, 0, 0, H2);
+      edge.addColorStop(0, "rgba(31,30,29,0.035)");
+      edge.addColorStop(0.3, "rgba(31,30,29,0)");
+      edge.addColorStop(1, "rgba(31,30,29,0.05)");
+      ctx2.fillStyle = edge;
+      ctx2.fillRect(0, 0, W2, H2);
+    }
+    drawGrain(ctx2, theme2, W2, H2, t);
+    ctx2.restore();
+  }
+  function drawGlassPanel(ctx2, themeRef, { x = 0, y = 0, w = 400, h = 240, r = 32, alpha = 1 } = {}) {
+    const theme2 = getTheme(themeRef);
+    const g = theme2.material.glass || {
+      fill: "rgba(255,255,255,0.32)",
+      border: "rgba(255,255,255,0.72)",
+      sheen: "rgba(255,255,255,0.9)",
+      tint: "rgba(168,195,160,0.08)"
+    };
+    ctx2.save();
+    ctx2.globalAlpha = alpha;
+    roundRectPath(ctx2, x, y, w, h, r);
+    ctx2.fillStyle = g.fill;
+    ctx2.fill();
+    ctx2.save();
+    roundRectPath(ctx2, x, y, w, h, r);
+    ctx2.clip();
+    const sheen = ctx2.createLinearGradient(x, y, x + w, y + h);
+    sheen.addColorStop(0, g.sheen);
+    sheen.addColorStop(0.32, "rgba(255,255,255,0.12)");
+    sheen.addColorStop(0.62, "rgba(255,255,255,0)");
+    sheen.addColorStop(1, "rgba(255,255,255,0.16)");
+    ctx2.fillStyle = sheen;
+    ctx2.fillRect(x, y, w, h);
+    if (g.tint) {
+      const tint = ctx2.createRadialGradient(x + w * 0.2, y + h * 0.15, 0, x + w * 0.2, y + h * 0.15, w * 0.8);
+      tint.addColorStop(0, g.tint);
+      tint.addColorStop(1, "rgba(255,255,255,0)");
+      ctx2.fillStyle = tint;
+      ctx2.fillRect(x, y, w, h);
+    }
+    ctx2.restore();
+    roundRectPath(ctx2, x + 0.5, y + 0.5, w - 1, h - 1, r);
+    ctx2.lineWidth = 1.2;
+    ctx2.strokeStyle = g.border;
+    ctx2.stroke();
+    const edge = ctx2.createLinearGradient(x, y, x, y + h * 0.5);
+    edge.addColorStop(0, "rgba(255,255,255,0.75)");
+    edge.addColorStop(1, "rgba(255,255,255,0)");
+    ctx2.lineWidth = 1;
+    ctx2.strokeStyle = edge;
+    ctx2.stroke();
+    ctx2.restore();
+  }
+  var AUDIT_PAIRS = [
+    ["ink", "bg", 7, "主字 / 底"],
+    ["ink", "bgDeep", 7, "主字 / 深底"],
+    ["muted", "bg", 4.5, "次要字 / 底"],
+    ["accentInk", "accent", 4.5, "强调底上的字"],
+    ["accent", "bg", 2.5, "强调 / 底（大面积色场，非正文）"],
+    ["paperInk", "paper", 7, "纸底上的字"],
+    ["paperMuted", "paper", 4.5, "纸底次要字"],
+    ["cardDarkInk", "cardDark", 7, "暗卡上的字"],
+    ["flash", "bg", 1, "闪白 / 底"]
+  ];
+  function auditTheme(themeRef) {
+    const t = getTheme(themeRef);
+    return AUDIT_PAIRS.map(([a, b, min, label]) => {
+      const ratio = contrastRatio(t.colors[a], t.colors[b]);
+      return { pair: `${a} / ${b}`, label, ratio: Math.round(ratio * 100) / 100, min, pass: ratio >= min };
+    });
+  }
+  function paletteRows(themeRef) {
+    const t = getTheme(themeRef);
+    const c2 = t.colors;
+    return [
+      { role: "bg", label: "底色", hex: c2.bg },
+      { role: "bgDeep", label: "深底", hex: c2.bgDeep },
+      { role: "surface", label: "表面", hex: c2.surface },
+      { role: "ink", label: "主字", hex: c2.ink },
+      { role: "muted", label: "次要字", hex: c2.muted },
+      { role: "accent", label: "强调", hex: c2.accent },
+      { role: "accentInk", label: "强调底字", hex: c2.accentInk },
+      { role: "accentSoft", label: "浅强调", hex: c2.accentSoft },
+      { role: "paper", label: "纸面", hex: c2.paper },
+      { role: "paperInk", label: "纸面字", hex: c2.paperInk },
+      { role: "paperMuted", label: "纸面次字", hex: c2.paperMuted },
+      { role: "cardDark", label: "暗卡", hex: c2.cardDark },
+      { role: "cardDarkInk", label: "暗卡字", hex: c2.cardDarkInk },
+      { role: "flash", label: "闪白", hex: c2.flash }
+    ];
+  }
+
+  // <stdin>
+  var W = 1920;
+  var H = 1080;
+  var canvas = document.getElementById("c");
+  var ctx = canvas.getContext("2d");
+  window.DURATION = 1;
+  var theme = themeFromURL(location.search);
+  var c = theme.colors;
+  var m = theme.material;
+  var hud = chrome(theme);
+  var NUM = String(THEME_IDS.indexOf(theme.id) + 1).padStart(2, "0");
+  var TOTAL = String(THEME_IDS.length).padStart(2, "0");
+  var SANS = '"Noto Sans SC", "Inter", sans-serif';
+  var MONO = '"JetBrains Mono", "Noto Sans SC", monospace';
+  var SERIF = '"Noto Serif SC", "Noto Sans SC", serif';
+  var PLAYFAIR = '"Playfair Display", "Noto Serif SC", serif';
+  var displaySpec = theme.type && theme.type.display || "";
+  var CN = displaySpec.includes("Noto Serif SC") ? SERIF : SANS;
+  var CN_WEIGHT = displaySpec.includes("Noto Serif SC") ? 700 : 900;
+  var PLAYFAIR_DISPLAY = displaySpec.includes("Playfair Display");
+  var M = 96;
+  var RIGHT = W - M;
+  var LEFT = M;
+  var PANEL = { x: 1168, y: 150, w: 656, h: 720, r: 30 };
+  var LEFT_R = PANEL.x - 48;
+  function rr(x, y, w, h, r) {
+    const q = Math.max(0, Math.min(r, w / 2, h / 2));
+    ctx.beginPath();
+    ctx.moveTo(x + q, y);
+    ctx.arcTo(x + w, y, x + w, y + h, q);
+    ctx.arcTo(x + w, y + h, x, y + h, q);
+    ctx.arcTo(x, y + h, x, y, q);
+    ctx.arcTo(x, y, x + w, y, q);
+    ctx.closePath();
+  }
+  function radialBlob(cx, cy, radius, color, alpha) {
+    if (!(radius > 0) || !(alpha > 0)) return;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    g.addColorStop(0, hexToRgba(color, alpha));
+    g.addColorStop(0.55, hexToRgba(color, alpha * 0.42));
+    g.addColorStop(1, hexToRgba(color, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+  }
+  function setFont(weight, size, family) {
+    ctx.font = `${weight} ${size}px ${family}`;
+  }
+  function drawSpaced(text, x, y, { weight = 500, size = 15, family = MONO, color = c.muted, spacing = 0, align = "left", baseline = "middle" } = {}) {
+    setFont(weight, size, family);
+    const chars = Array.from(String(text));
+    const widths = chars.map((ch) => ctx.measureText(ch).width);
+    const gapCount = Math.max(0, chars.length - 1);
+    const totalW = widths.reduce((a, b) => a + b, 0) + gapCount * spacing;
+    let px = align === "right" ? x - totalW : align === "center" ? x - totalW / 2 : x;
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.textAlign = "left";
+    ctx.textBaseline = baseline;
+    for (let i = 0; i < chars.length; i++) {
+      if (chars[i] !== " ") ctx.fillText(chars[i], px, y);
+      px += widths[i] + spacing;
+    }
+    ctx.restore();
+    return totalW;
+  }
+  function fitSize(text, weight, family, maxW, size, min = 18, step = 2) {
+    let s = size;
+    while (s > min) {
+      setFont(weight, s, family);
+      if (ctx.measureText(text).width <= maxW) break;
+      s -= step;
+    }
+    return s;
+  }
+  function wrapText(text, maxW, weight, size, family) {
+    setFont(weight, size, family);
+    const lines = [];
+    let cur = "";
+    for (const ch of Array.from(String(text))) {
+      if (ch === "\n") {
+        if (cur) lines.push(cur);
+        cur = "";
+        continue;
+      }
+      const test = cur + ch;
+      if (cur && ctx.measureText(test).width > maxW) {
+        lines.push(cur);
+        cur = ch;
+      } else cur = test;
+    }
+    if (cur) lines.push(cur);
+    return lines;
+  }
+  function fillText(text, x, y, { weight = 400, size = 16, family = SANS, color = c.ink, align = "left" } = {}) {
+    setFont(weight, size, family);
+    ctx.fillStyle = color;
+    ctx.textAlign = align;
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, x, y);
+  }
+  function drawCapsule(x, y, h, { number, label, font, padX = 26, numberColor, textColor, bg, border }) {
+    ctx.save();
+    setFont(0, 0, "");
+    ctx.font = font;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    const wNum = ctx.measureText(number).width;
+    const wLabel = ctx.measureText(label).width;
+    const w = padX * 2 + wNum + 14 + wLabel;
+    const r = h / 2;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = border;
+    ctx.stroke();
+    ctx.fillStyle = numberColor;
+    ctx.fillText(number, x + padX, y + h / 2 + 1);
+    ctx.fillStyle = textColor;
+    ctx.fillText(label, x + padX + wNum + 14, y + h / 2 + 1);
+    ctx.restore();
+  }
+  function drawBackdrop(t) {
+    drawThemeBackground(ctx, theme, W, H, t);
+    if (m.glass && Array.isArray(m.tints) && m.tints.length) {
+      const P = PANEL;
+      radialBlob(P.x + P.w * 0.2, P.y + P.h * 0.24, 330, m.tints[0], 0.5);
+      radialBlob(P.x + P.w * 0.86, P.y + P.h * 0.68, 380, m.tints[1] || m.tints[0], 0.42);
+      radialBlob(P.x + P.w * 0.42, P.y + P.h * 0.98, 300, m.tints[2] || m.tints[0], 0.3);
+    }
+  }
+  function drawGhostIndex() {
+    ctx.save();
+    const size = 122;
+    setFont(900, size, SANS);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = hexToRgba(c.accent, 0.36);
+    ctx.strokeText(NUM, LEFT_R, 206);
+    ctx.restore();
+  }
+  function drawHeader() {
+    const y = 88;
+    const w1 = drawSpaced("THEME", LEFT, y, { size: 16, spacing: 3, color: c.muted });
+    const w2 = drawSpaced(NUM, LEFT + w1 + 14, y, { size: 16, spacing: 3, color: c.accent });
+    drawSpaced(`/ ${TOTAL}`, LEFT + w1 + 14 + w2 + 12, y, { size: 16, spacing: 3, color: c.muted });
+    const meta = `${theme.nameEn.toUpperCase()}  ·  ${theme.mode.toUpperCase()}  ·  ${m.kind.toUpperCase()}`;
+    drawSpaced(meta, RIGHT, y, { size: 14, spacing: 2.2, color: c.muted, align: "right" });
+  }
+  function drawTitleBlock() {
+    ctx.fillStyle = c.accent;
+    ctx.fillRect(LEFT, 190, 30, 5);
+    drawSpaced("主题系统 · 一套版式 / 八种气质", LEFT + 46, 193, { size: 15, spacing: 1.5, color: c.muted });
+    const cnSize = fitSize(theme.name, CN_WEIGHT, CN, LEFT_R - LEFT, 112, 72);
+    setFont(CN_WEIGHT, cnSize, CN);
+    ctx.fillStyle = c.ink;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(theme.name, LEFT, 302);
+    if (PLAYFAIR_DISPLAY) {
+      setFont("italic 500", 44, PLAYFAIR);
+      ctx.fillStyle = c.muted;
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(theme.nameEn, LEFT, 376);
+    } else {
+      drawSpaced(theme.nameEn.toUpperCase(), LEFT, 376, { size: 24, spacing: 6, color: c.muted });
+    }
+    const tagSize = fitSize(theme.tagline, 500, SANS, LEFT_R - LEFT, 34, 26);
+    fillText(theme.tagline, LEFT, 436, { weight: 500, size: tagSize, color: c.ink });
+    drawSpaced("适用场景", LEFT, 490, { size: 14, spacing: 1.5, color: c.muted });
+    const useSize = fitSize(theme.useFor, 500, SANS, LEFT_R - LEFT - 100, 19, 15);
+    fillText(theme.useFor, LEFT + 96, 490, { weight: 500, size: useSize, color: c.ink });
+  }
+  function keywordOn(card, bgOverride) {
+    const bg = bgOverride || card.bg;
+    if (contrastRatio(card.keyword, bg) >= 3) return card.keyword;
+    if (contrastRatio(c.accentSoft, bg) >= 3) return c.accentSoft;
+    return card.ink;
+  }
+  function drawMiniCard(spec, x, y, w, h) {
+    const card = cardColors(theme, spec.layout);
+    const ink = card.ink;
+    const blendsIntoPage = contrastRatio(card.bg, c.bg) < 1.1;
+    const darkDuplicatesAccent = spec.layout === 2 && contrastRatio(card.bg, c.accent) < 1.1;
+    const fieldBg = darkDuplicatesAccent ? mix(card.bg, c.accentSoft, 0.32) : card.bg;
+    ctx.save();
+    rr(x, y, w, h, 16);
+    ctx.fillStyle = fieldBg;
+    ctx.fill();
+    ctx.clip();
+    ctx.strokeStyle = card.grid;
+    ctx.lineWidth = 1;
+    for (let gx = x; gx <= x + w; gx += 72) {
+      ctx.beginPath();
+      ctx.moveTo(gx, y);
+      ctx.lineTo(gx, y + h);
+      ctx.stroke();
+    }
+    for (let gy = y; gy <= y + h; gy += 72) {
+      ctx.beginPath();
+      ctx.moveTo(x, gy);
+      ctx.lineTo(x + w, gy);
+      ctx.stroke();
+    }
+    if (card.sheen) {
+      const g = ctx.createLinearGradient(x, y, x + w, y + h);
+      g.addColorStop(0, card.sheen);
+      g.addColorStop(0.6, "rgba(255,255,255,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(x, y, w, h);
+    }
+    if (darkDuplicatesAccent) {
+      radialBlob(x + w * 0.78, y + h * 0.24, 190, c.accentSoft, 0.32);
+    }
+    ctx.restore();
+    if (blendsIntoPage) {
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = hexToRgba(ink, 0.22);
+      rr(x + 0.6, y + 0.6, w - 1.2, h - 1.2, 16);
+      ctx.stroke();
+    }
+    const smallColor = hexToRgba(ink, 0.8);
+    fillText(spec.small, x + 26, y + 60, { weight: 500, size: 20, family: SANS, color: smallColor });
+    const bigColor = spec.keyword ? keywordOn(card, fieldBg) : ink;
+    const bigSize = fitSize(spec.big, CN_WEIGHT, CN, w - 52, 58, 38);
+    setFont(CN_WEIGHT, bigSize, CN);
+    ctx.fillStyle = bigColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(spec.big, x + 24, y + 128);
+    if (spec.underline) {
+      setFont(CN_WEIGHT, bigSize, CN);
+      const bw = Math.min(w - 48, ctx.measureText(spec.big).width);
+      ctx.fillStyle = card.keyword;
+      ctx.fillRect(x + 24, y + 166, bw, 7);
+    }
+    drawSpaced(spec.tag, x + 26, y + h - 25, { size: 11.5, spacing: 1.2, color: hexToRgba(ink, darkDuplicatesAccent ? 0.85 : 0.62) });
+  }
+  function drawMiniCards() {
+    drawSpaced("大字卡 · 三种底 / CARD FIELDS", LEFT, 540, { size: 14, spacing: 1.5, color: c.muted });
+    drawSpaced("324 × 220", LEFT_R, 540, { size: 13, spacing: 1.5, color: c.muted, align: "right" });
+    const gap = 26;
+    const w = (LEFT_R - LEFT - gap * 2) / 3;
+    const y = 556, h = 220;
+    const specs = [
+      { layout: 0, small: "想做", big: "视频？", tag: "A 强调底" },
+      { layout: 1, small: "把复杂", big: "讲清楚", tag: "B 纸底", underline: true },
+      { layout: 2, small: "还有", big: "更多？", tag: "C 暗卡", keyword: true }
+    ];
+    specs.forEach((spec, i) => drawMiniCard(spec, LEFT + i * (w + gap), y, w, h));
+  }
+  function drawHud() {
+    drawSpaced("HUD 实物 · 胶囊 / 倒计时 / 水印", LEFT, 812, { size: 14, spacing: 1.5, color: c.muted });
+    const cap = hud.capsule;
+    drawCapsule(LEFT, 834, 54, {
+      number: "01",
+      label: "扁平插画 · 科普",
+      font: `600 24px ${SANS}`,
+      padX: 24,
+      numberColor: cap.numberColor,
+      textColor: cap.textColor,
+      bg: cap.bg,
+      border: cap.border
+    });
+    drawSpaced("STYLE 01 / 11", LEFT_R, 828, { size: 17, spacing: 2, color: hud.stamp.color, align: "right" });
+    setFont(400, 34, MONO);
+    ctx.fillStyle = hud.countdown.color;
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText("00:03", LEFT_R, 876);
+  }
+  var ROLE_ORDER = ["bg", "ink", "accent", "paper", "cardDark", "surface", "muted", "accentSoft"];
+  function drawSpecPanel() {
+    const P = PANEL;
+    const panelInk = c.ink;
+    const panelMut = mix(c.muted, c.ink, 0.3);
+    const surfaceForSwatch = m.glass ? c.paper : c.surface;
+    if (m.glass) {
+      drawGlassPanel(ctx, theme, { x: P.x, y: P.y, w: P.w, h: P.h, r: P.r, alpha: 1 });
+      ctx.save();
+      rr(P.x, P.y, P.w, P.h, P.r);
+      ctx.clip();
+      ctx.globalCompositeOperation = "multiply";
+      const tints = m.tints && m.tints.length ? m.tints : [c.accentSoft, c.accent];
+      const blobs = [
+        { cx: P.x + P.w * 0.26, cy: P.y + P.h * 0.32, r: 300, color: tints[0], a: 0.5 },
+        { cx: P.x + P.w * 0.84, cy: P.y + P.h * 0.62, r: 340, color: tints[1] || tints[0], a: 0.42 },
+        { cx: P.x + P.w * 0.5, cy: P.y + P.h * 0.98, r: 380, color: tints[2] || tints[0], a: 0.3 }
+      ];
+      blobs.forEach((b) => {
+        const g = ctx.createRadialGradient(b.cx, b.cy, 0, b.cx, b.cy, b.r);
+        g.addColorStop(0, hexToRgba(b.color, b.a));
+        g.addColorStop(1, hexToRgba(b.color, 0));
+        ctx.fillStyle = g;
+        ctx.fillRect(P.x, P.y, P.w, P.h);
+      });
+      ctx.restore();
+    } else {
+      ctx.save();
+      rr(P.x, P.y, P.w, P.h, P.r);
+      ctx.fillStyle = hexToRgba(c.surface, theme.mode === "dark" ? 0.96 : 0.84);
+      ctx.fill();
+      ctx.clip();
+      const sheen = ctx.createLinearGradient(P.x, P.y, P.x, P.y + P.h * 0.55);
+      sheen.addColorStop(0, hexToRgba(c.paper, 0.06));
+      sheen.addColorStop(1, hexToRgba(c.paper, 0));
+      ctx.fillStyle = sheen;
+      ctx.fillRect(P.x, P.y, P.w, P.h);
+      ctx.restore();
+      if (contrastRatio(c.surface, c.bg) < 1.22) {
+        ctx.save();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = hexToRgba(c.ink, 0.16);
+        rr(P.x + 0.6, P.y + 0.6, P.w - 1.2, P.h - 1.2, P.r);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+    const pad = 38;
+    const x0 = P.x + pad;
+    const w = P.w - pad * 2;
+    drawSpaced("ROLE PALETTE", x0, P.y + 52, { size: 14, spacing: 2.5, color: panelMut });
+    drawSpaced(`${String(ROLE_ORDER.length).padStart(2, "0")} ROLES`, x0 + w, P.y + 52, { size: 13, spacing: 2, color: panelMut, align: "right" });
+    const rows = paletteRows(theme);
+    const picked = ROLE_ORDER.map((role) => rows.find((r) => r.role === role)).filter(Boolean);
+    const rowH = 62, colW = 290, startY = P.y + 86;
+    picked.forEach((row, i) => {
+      const col = i % 2;
+      const ri = i / 2 | 0;
+      const x = x0 + col * colW;
+      const y = startY + ri * rowH;
+      const sw = 32;
+      rr(x, y - sw / 2, sw, sw, 8);
+      ctx.fillStyle = row.hex;
+      ctx.fill();
+      if (contrastRatio(row.hex, surfaceForSwatch) < 1.18) {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = hexToRgba(panelInk, 0.26);
+        rr(x + 0.5, y - sw / 2 + 0.5, sw - 1, sw - 1, 8);
+        ctx.stroke();
+      }
+      fillText(row.label, x + 46, y - 8, { weight: 600, size: 18, color: panelInk });
+      drawSpaced(row.hex.toUpperCase(), x + 46, y + 13, { size: 12.5, spacing: 0.6, color: panelMut });
+    });
+    const accHeadY = P.y + 342;
+    drawSpaced("ACCENTS / 点缀色", x0, accHeadY, { size: 14, spacing: 2, color: panelMut });
+    drawSpaced("04", x0 + w, accHeadY, { size: 13, spacing: 2, color: panelMut, align: "right" });
+    const chipW = 136;
+    const chipGap = (w - 4 * chipW) / 3;
+    theme.accents.slice(0, 4).forEach((a, i) => {
+      const x = x0 + i * (chipW + chipGap);
+      const y = P.y + 360;
+      rr(x, y, chipW, 38, 7);
+      ctx.fillStyle = a.hex;
+      ctx.fill();
+      if (contrastRatio(a.hex, surfaceForSwatch) < 1.18) {
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = hexToRgba(panelInk, 0.26);
+        rr(x + 0.5, y + 0.5, chipW - 1, 37, 7);
+        ctx.stroke();
+      }
+      fillText(a.name, x, y + 58, { weight: 500, size: 14, color: panelMut });
+    });
+    const matY = P.y + 470;
+    drawSpaced("MATERIAL / 材质", x0, matY, { size: 14, spacing: 2, color: panelMut });
+    fillText(m.name, x0, matY + 36, { weight: 700, size: 24, color: panelInk });
+    const noteLines = wrapText(m.note, w, 400, 15.5, SANS).slice(0, 3);
+    noteLines.forEach((line, i) => {
+      fillText(line, x0, matY + 72 + i * 26, { weight: 400, size: 15.5, color: panelMut });
+    });
+    const typeY = matY + 72 + (noteLines.length - 1) * 26 + 40;
+    drawSpaced("TYPE / 排印", x0, typeY, { size: 14, spacing: 2, color: panelMut });
+    const typeVal = theme.type.display === theme.type.accent ? theme.type.display : `${theme.type.display} · ${theme.type.accent}`;
+    drawSpaced(typeVal, x0 + 126, typeY, {
+      size: 12.5,
+      spacing: 0.4,
+      color: panelMut
+    });
+    const audit = auditTheme(theme);
+    const pass = audit.filter((a) => a.pass).length;
+    const inkBg = audit.find((a) => a.pair === "ink / bg");
+    const auditY = P.y + P.h - 56;
+    ctx.fillStyle = c.accent;
+    ctx.fillRect(x0, auditY - 4, 7, 7);
+    drawSpaced(
+      `CONTRAST AUDIT ${pass}/${audit.length} PASS  ·  INK/BG ${inkBg ? inkBg.ratio.toFixed(1) : "-"}:1`,
+      x0 + 18,
+      auditY,
+      { size: 12.5, spacing: 1.1, color: panelMut }
+    );
+  }
+  function drawRail() {
+    const gap = 12;
+    const n = THEME_IDS.length;
+    const w = (RIGHT - LEFT - gap * (n - 1)) / n;
+    const h = 60;
+    const y = 934;
+    THEME_IDS.forEach((id, i) => {
+      const th = THEMES[id];
+      const x = LEFT + i * (w + gap);
+      const active = id === theme.id;
+      rr(x, y, w, h, 10);
+      ctx.fillStyle = active ? c.accent : hexToRgba(c.surface, 0.85);
+      ctx.fill();
+      if (active) {
+        ctx.fillStyle = c.accentInk;
+      } else {
+        ctx.fillStyle = c.muted;
+      }
+      setFont(active ? 600 : 500, 16, SANS);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(th.name, x + w / 2, y + h / 2 + 1);
+    });
+  }
+  function drawFooter() {
+    const y = 1036;
+    drawSpaced("CODE-VIDEO-SHOWCASE / THEME SYSTEM v1", LEFT, y, { size: 13, spacing: 2, color: c.muted });
+    drawSpaced(`1920 × 1080 · STATIC PREVIEW · ${NUM}/${TOTAL}`, RIGHT, y, { size: 13, spacing: 2, color: c.muted, align: "right" });
+  }
+  function draw(t) {
+    ctx.save();
+    drawBackdrop(t);
+    drawGhostIndex();
+    drawHeader();
+    drawTitleBlock();
+    drawMiniCards();
+    drawHud();
+    drawSpecPanel();
+    drawRail();
+    drawFooter();
+    ctx.restore();
+  }
+  window.renderFrame = (u) => {
+    const t = Math.max(0, Math.min(1, Number(u) || 0));
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    draw(t);
+  };
+  async function loadFonts(families) {
+    if (typeof document === "undefined" || !document.fonts) return;
+    const rows = paletteRows(theme);
+    const sample = [
+      theme.name,
+      theme.nameEn,
+      theme.tagline,
+      theme.useFor,
+      m.name,
+      m.note,
+      ...rows.map((r) => r.label),
+      ...theme.accents.map((a) => a.name),
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 /·×—",
+      "主题系统 一套版式 八种气质 适用场景 大字卡 三种底 强调 纸面 暗卡 HUD 实物 胶囊 倒计时 水印",
+      "底色 主字 强调 纸面 暗卡 表面 次要字 浅强调 点缀色 材质 对比度审计"
+    ].join(" ");
+    for (const family of families) {
+      for (const weight of [400, 500, 600, 700, 900]) {
+        try {
+          await document.fonts.load(`${weight} 64px "${family}"`, sample);
+        } catch (e) {
+        }
+      }
+    }
+    await document.fonts.ready;
+  }
+  window.__ready = false;
+  window.__bootError = null;
+  (async () => {
+    const families = Array.from(/* @__PURE__ */ new Set([...loadFontsFor(theme) || [], "Noto Sans SC", "JetBrains Mono"]));
+    await loadFonts(families);
+    window.renderFrame(0.4);
+    window.__ready = true;
+  })().catch((e) => {
+    window.__bootError = String(e && e.stack || e);
+  });
+})();
+
+  const selected = new URLSearchParams(location.search).get("theme") || "coral-noir";
+  for (const link of document.querySelectorAll("nav [data-theme]")) {
+    if (link.dataset.theme === selected) link.setAttribute("aria-current", "page");
+  }
+</script>
+</body>
+</html>
